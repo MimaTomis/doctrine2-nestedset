@@ -18,6 +18,9 @@
 
 namespace DoctrineExtensions\NestedSet;
 
+use DoctrineExtensions\NestedSet\Node\NodeInterface;
+use DoctrineExtensions\NestedSet\Node\NodeWrapper;
+
 /**
  * The Manager provides functions for creating and fetching a NestedSet tree.
  *
@@ -237,7 +240,7 @@ class Manager
      *
      * @return NodeWrapper
      */
-    public function createRoot(Node $node)
+    public function createRoot(NodeInterface $node)
     {
         if($node instanceof NodeWrapper)
         {
@@ -280,11 +283,11 @@ class Manager
     /**
      * wraps the node using the NodeWrapper class
      *
-     * @param Node $node
+     * @param NodeInterface $node
      *
      * @return NodeWrapper
      */
-    public function wrapNode(Node $node)
+    public function wrapNode(NodeInterface $node)
     {
         if($node instanceof NodeWrapper)
         {

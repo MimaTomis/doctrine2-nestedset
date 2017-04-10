@@ -107,40 +107,17 @@ class Config
         }
 
         $reflectionClass = $classMetadata->getReflectionClass();
-        if(!$reflectionClass->implementsInterface('DoctrineExtensions\NestedSet\Node'))
+        if(!$reflectionClass->implementsInterface('DoctrineExtensions\NestedSet\Node\NodeInterface'))
         {
             throw new \InvalidArgumentException('Class must implement Node interface: ' . $classname);
         }
 
-        $this->hasManyRoots = $reflectionClass->implementsInterface('DoctrineExtensions\NestedSet\MultipleRootNode');
+        $this->hasManyRoots = $reflectionClass->implementsInterface('DoctrineExtensions\NestedSet\MultipleRootNodeInterface');
         $this->classMetadata = $classMetadata;
         $this->classname = $classname;
 
         return $this;
     }
-
-
-    /**
-     * gets the entity class name associated with this configuration
-     *
-     * @return string
-     */
-    public function getClassname()
-    {
-        return $this->classname;
-    }
-
-
-    /**
-     * gets the class metadata associated with this configuration
-     *
-     * @return ClassMetadata
-     */
-    public function getClassMetadata()
-    {
-        return $this->classMetadata;
-    }
-
 
     /**
      * Returns the Doctrine entity manager associated with this Manager

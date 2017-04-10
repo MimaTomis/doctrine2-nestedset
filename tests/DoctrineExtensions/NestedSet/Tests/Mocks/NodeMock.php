@@ -18,13 +18,13 @@
 
 namespace DoctrineExtensions\NestedSet\Tests\Mocks;
 
-use DoctrineExtensions\NestedSet\MultipleRootNode;
+use DoctrineExtensions\NestedSet\MultipleRootNodeInterface;
 
 
 /**
  * @Entity
  */
-class NodeMock implements MultipleRootNode
+class NodeMock implements MultipleRootNodeInterface
 {
     /**
      * @Id @Column(type="integer")

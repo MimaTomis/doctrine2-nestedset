@@ -21,7 +21,7 @@ namespace DoctrineExtensions\NestedSet\Tests;
 use DoctrineExtensions\NestedSet\Tests\Mocks\NodeMock;
 use DoctrineExtensions\NestedSet\Tests\Mocks\ManagerMock;
 use DoctrineExtensions\NestedSet\Tests\Mocks\RelatedObj;
-use DoctrineExtensions\NestedSet\NodeWrapper;
+use DoctrineExtensions\NestedSet\Node\NodeWrapper;
 
 class ManagerTest extends DatabaseTest
 {
@@ -123,7 +123,7 @@ class ManagerTest extends DatabaseTest
         $this->assertNull($this->nsm->fetchTree(10), '->fetchTree() returns null when no nodes exist');
 
         $root = $this->nsm->fetchTree(1);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $root, '->fetchTree() returns a NodeWrapper object');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $root, '->fetchTree() returns a NodeWrapper object');
 
         //
         // NOTE: Testing private variables
@@ -207,7 +207,7 @@ class ManagerTest extends DatabaseTest
         $this->assertNull($this->nsm->fetchTree(1, 0));
 
         $root = $this->nsm->fetchTree(1, 2);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $root, '->fetchTree() returns a NodeWrapper object');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $root, '->fetchTree() returns a NodeWrapper object');
 
         //
         // NOTE: Testing private variables
@@ -236,7 +236,7 @@ class ManagerTest extends DatabaseTest
         $this->assertNull($this->nsm->fetchBranch(-10), '->fetchBranch() returns null when branch node doesn\'t exist');
 
         $root = $this->nsm->fetchBranch(2);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $root, '->fetchBranch() returns a NodeWrapper object');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $root, '->fetchBranch() returns a NodeWrapper object');
 
         //
         // NOTE: Testing private variables
@@ -295,7 +295,7 @@ class ManagerTest extends DatabaseTest
         $this->assertNull($this->nsm->fetchBranch(2, 0));
 
         $root = $this->nsm->fetchBranch(2, 1);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $root, '->fetchTree() returns a NodeWrapper object');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $root, '->fetchTree() returns a NodeWrapper object');
 
         //
         // NOTE: Testing private variables
@@ -370,7 +370,7 @@ class ManagerTest extends DatabaseTest
 
         $node = new NodeMock(21, '1');
         $wrapper = $this->nsm->createRoot($node);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $wrapper, '->createRoot() returns a NodeWrapper()');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $wrapper, '->createRoot() returns a NodeWrapper()');
         $this->assertEquals(1, $wrapper->getLeftValue(), '->createRoot() sets left value');
         $this->assertEquals(2, $wrapper->getRightValue(), '->createRoot() sets right value');
         $this->assertEquals(21, $wrapper->getRootValue(), '->createRoot() sets root value');
@@ -398,7 +398,7 @@ class ManagerTest extends DatabaseTest
 
         $node = new NodeMock(null, '1');
         $wrapper = $this->nsm->createRoot($node);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $wrapper, '->createRoot() returns a NodeWrapper()');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $wrapper, '->createRoot() returns a NodeWrapper()');
         $this->assertEquals($wrapper->getId(), $wrapper->getRootValue(), '->createRoot() sets root value');
     }
 
@@ -410,7 +410,7 @@ class ManagerTest extends DatabaseTest
     {
         $node = new NodeMock(1, '1');
         $wrapper = $this->nsm->wrapNode($node);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $wrapper, '->wrapNode returns NodeWrapper object');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $wrapper, '->wrapNode returns NodeWrapper object');
     }
 
 

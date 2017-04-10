@@ -18,13 +18,13 @@
 
 namespace DoctrineExtensions\NestedSet\Tests\Mocks;
 
-use DoctrineExtensions\NestedSet\Node;
+use DoctrineExtensions\NestedSet\Node\NodeInterface;
 
 
 /**
  * @Entity
  */
-class SingleRootNodeMock implements Node
+class SingleRootNodeInterfaceMock implements NodeInterface
 {
     /**
      * @Id @Column(type="integer")

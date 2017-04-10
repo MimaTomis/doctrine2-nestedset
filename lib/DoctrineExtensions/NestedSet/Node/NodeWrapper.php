@@ -16,19 +16,21 @@
  * and is licensed under the LGPL.
  */
 
-namespace DoctrineExtensions\NestedSet;
+namespace DoctrineExtensions\NestedSet\Node;
+
+use DoctrineExtensions\NestedSet\Manager;
 
 /**
  * Wraps a Doctrine entity providing methods for interacting with the tree.
  *
  * @author  Brandon Turner <bturner@bltweb.net>
  */
-class NodeWrapper implements Node
+class NodeWrapper implements NodeInterface
 {
 
 
     /**
-     * @var Node The wrapped Node
+     * @var NodeInterface The wrapped Node
      **/
     private $node;
 
@@ -56,7 +58,7 @@ class NodeWrapper implements Node
 
 
 
-    public function __construct(Node $node, Manager $manager)
+    public function __construct(NodeInterface $node, Manager $manager)
     {
         if($node instanceof NodeWrapper)
         {
@@ -500,7 +502,7 @@ class NodeWrapper implements Node
     /**
      * gets prev sibling or null
      *
-     * @return Node
+     * @return NodeInterface
      */
     public function getPrevSibling()
     {
@@ -548,7 +550,7 @@ class NodeWrapper implements Node
     /**
      * gets next sibling or null
      *
-     * @return Node
+     * @return NodeInterface
      */
     public function getNextSibling()
     {
@@ -1099,11 +1101,11 @@ class NodeWrapper implements Node
     /**
      * adds given node as the last child of this entity
      *
-     * @param Node $node
+     * @param NodeInterface $node
      *
      * @return NodeWrapper $wrapper
      */
-    public function addChild(Node $node)
+    public function addChild(NodeInterface $node)
     {
         if($node instanceof NodeWrapper)
         {
@@ -1390,7 +1392,7 @@ class NodeWrapper implements Node
     /**
      * Returns the wrapped node
      *
-     * @return Node
+     * @return NodeInterface
      */
     public function getNode()
     {
@@ -1475,7 +1477,7 @@ class NodeWrapper implements Node
      *
      * @return bool
      */
-    public function isDescendantOf(Node $node)
+    public function isDescendantOf(NodeInterface $node)
     {
         return (($this->getLeftValue() > $node->getLeftValue()) &&
                 ($this->getRightValue() < $node->getRightValue()) &&
@@ -1490,7 +1492,7 @@ class NodeWrapper implements Node
      *
      * @return bool
      */
-    public function isAncestorOf(Node $node)
+    public function isAncestorOf(NodeInterface $node)
     {
         return (($this->getLeftValue() < $node->getLeftValue()) &&
                 ($this->getRightValue() > $node->getRightValue()) &&
@@ -1505,7 +1507,7 @@ class NodeWrapper implements Node
      *
      * @return bool
      */
-    public function isEqualTo(Node $node)
+    public function isEqualTo(NodeInterface $node)
     {
         return (($this->getLeftValue() == $node->getLeftValue()) &&
                 ($this->getRightValue() == $node->getRightValue()) &&

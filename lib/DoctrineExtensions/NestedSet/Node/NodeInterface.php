@@ -16,32 +16,61 @@
  * and is licensed under the LGPL.
  */
 
-namespace DoctrineExtensions\NestedSet;
+namespace DoctrineExtensions\NestedSet\Node;
 
 
 /**
  * Indicates a class supports hierarchical relations where each element has
- * exactly 0 or 1 parent, multiple children and multiple root nodes.  The
- * position within this hierarchy is calculated using a NestedSet algorithm.
+ * exactly 0 or 1 parent and multiple children.  The position within this
+ * hierarchy is calculated using a NestedSet algorithm.
  *
  * For more information on NestedSets:
  *   http://dev.mysql.com/tech-resources/articles/hierarchical-data.html
  *
  * @author  Brandon Turner <bturner@bltweb.net>
  */
-interface MultipleRootNode extends Node
+interface NodeInterface
 {
+
     /**
-     * gets Node's root value
+     * gets a unique identifier for this node
      *
      * @return mixed
      */
-    public function getRootValue();
+    public function getId();
 
     /**
-     * sets Node's root value
+     * gets a string representation of the Node
      *
-     * @param mixed $root
+     * @return string
      */
-    public function setRootValue($root);
+    public function __toString();
+
+    /**
+     * gets Node's left value
+     *
+     * @return int
+     */
+    public function getLeftValue();
+
+    /**
+     * sets Node's left value
+     *
+     * @param int $lft
+     */
+    public function setLeftValue($lft);
+
+    /**
+     * gets Node's right value
+     *
+     * @return int
+     */
+    public function getRightValue();
+
+    /**
+     * sets Node's right value
+     *
+     * @param int $rgt
+     */
+    public function setRightValue($rgt);
 }

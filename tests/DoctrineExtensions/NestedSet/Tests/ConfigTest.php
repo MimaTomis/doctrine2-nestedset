@@ -173,7 +173,7 @@ class ConfigTest extends DatabaseTest
         $this->config->setClass('DoctrineExtensions\NestedSet\Tests\Mocks\NodeMock');
         $this->assertTrue($this->config->hasManyRoots(), '->hasManyRoots() returns true for MutlipleRootNode node');
 
-        $this->config->setClass('DoctrineExtensions\NestedSet\Tests\Mocks\SingleRootNodeMock');
+        $this->config->setClass('DoctrineExtensions\NestedSet\Tests\Mocks\SingleRootNodeInterfaceMock');
         $this->assertFalse($this->config->hasManyRoots(), '->hasManyRoots() returns false for Node node');
     }
 

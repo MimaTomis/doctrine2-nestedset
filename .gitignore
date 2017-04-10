@@ -1,2 +1,4 @@
 vendor/
 tests/DoctrineExtensions/NestedSet/Proxies/
+.idea/
+composer.lock

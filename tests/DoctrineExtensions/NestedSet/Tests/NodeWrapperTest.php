@@ -20,7 +20,7 @@ namespace DoctrineExtensions\NestedSet\Tests;
 
 use DoctrineExtensions\NestedSet\Tests\Mocks\NodeMock;
 use DoctrineExtensions\NestedSet\Tests\Mocks\ManagerMock;
-use DoctrineExtensions\NestedSet\NodeWrapper;
+use DoctrineExtensions\NestedSet\Node\NodeWrapper;
 
 
 
@@ -81,7 +81,7 @@ class NodeWrapperTest extends DatabaseTest
      */
     public function testConstructor()
     {
-        $this->assertType('DoctrineExtensions\NestedSet\NodeWrapper', new NodeWrapper($this->nodes[2], $this->nsm), '->__construct() works');
+        $this->assertType('DoctrineExtensions\NestedSet\Node\NodeWrapper', new NodeWrapper($this->nodes[2], $this->nsm), '->__construct() works');
     }
 
 
@@ -879,7 +879,7 @@ class NodeWrapperTest extends DatabaseTest
     public function testAddChild_Node()
     {
         $newWrapper = $this->wrappers[1]->addChild(new NodeMock(6, '1.1.3', 0, 0, 0));
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeWrapper', $newWrapper, '->addChild() returns a NodeWrapper');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Node\NodeWrapper', $newWrapper, '->addChild() returns a NodeWrapper');
         $this->assertEquals(7, $newWrapper->getLeftValue(), '->addChild() updates new node\'s left value');
         $this->assertEquals(8, $newWrapper->getRightValue(), '->addChild() updates new node\'s right value');
         $this->assertEquals(1, $newWrapper->getRootValue(), '->addChild() updates new node\'s root value');
