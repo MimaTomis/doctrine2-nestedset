@@ -18,7 +18,9 @@
 
 namespace DoctrineExtensions\NestedSet;
 
-use DoctrineExtensions\NestedSet\Node\NodeInterface;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\QueryBuilder;
+use DoctrineExtensions\NestedSet\Node\NodeField;
 use DoctrineExtensions\NestedSet\Node\NodeWrapper;
 
 /**
@@ -28,40 +30,41 @@ use DoctrineExtensions\NestedSet\Node\NodeWrapper;
  */
 class Manager
 {
-    /** @var Config */
-    protected $config;
-
-    /** @var array */
-    protected $wrappers;
-
+    /**
+     * @var NodeDefiner
+     */
+    protected $nodeDefiner;
 
     /**
-     * Initializes a new NestedSet Manager.
-     *
-     * @param string|Doctrine\ORM\Mapping\ClassMetadata $clazz the fully qualified entity class name
-     *   or a ClassMetadata object representing the class of nodes to be managed
-     *   by this manager
-     * @param Doctrine\ORM\EntityManager $em The EntityManager to use.
+     * @var array
      */
-    public function __construct(Config $config)
+    protected $wrappers;
+    /**
+     * @var EntityManager
+     */
+    private $entityManager;
+
+    public function __construct(NodeDefiner $nodeDefiner, EntityManager $entityManager)
     {
-        $this->config = $config;
+        $this->nodeDefiner = $nodeDefiner;
         $this->wrappers = array();
+        $this->entityManager = $entityManager;
     }
 
 
     /**
      * Fetches the complete tree, returning the root node of the tree
      *
+     * @param string $class entity class name
      * @param mixed $rootId the root id of the tree (or null if model doesn't
      *   support multiple trees
      * @param int $depth the depth to retrieve or null for unlimited
      *
      * @return NodeWrapper $root
      */
-    public function fetchTree($rootId=null, $depth=null)
+    public function fetchTree($class, $rootId=null, $depth=null)
     {
-        $wrappers = $this->fetchTreeAsArray($rootId, $depth);
+        $wrappers = $this->fetchTreeAsArray($class, $rootId, $depth);
 
         return (!is_array($wrappers) || empty($wrappers)) ? null : $wrappers[0];
     }
@@ -71,63 +74,56 @@ class Manager
      * Fetches the complete tree, returning a flat array of node wrappers with
      * parent, children, ancestors and descendants pre-populated.
      *
+     * @param string $class entity class name
      * @param mixed $rootId the root id of the tree (or null if model doesn't
      *   support multiple trees
      * @param int $depth the depth to retrieve or null for unlimited
      *
      * @return array
      */
-    public function fetchTreeAsArray($rootId=null, $depth=null)
+    public function fetchTreeAsArray($class, $rootId = null, $depth = null)
     {
-        $config = $this->getConfiguration();
-        $lftField = $config->getLeftFieldName();
-        $rgtField = $config->getRightFieldName();
-        $rootField = $config->getRootFieldName();
-        $hasManyRoots = $config->hasManyRoots();
+        $node = $this->nodeDefiner->getNode($class);
+        $rootField = $node->getField(NodeField::TYPE_ROOT);
 
-        if($rootId === null && $rootField !== null)
-        {
+        if ($rootId === null && $rootField !== null) {
             throw new \InvalidArgumentException('Must provide root id');
         }
 
-        if($depth === 0)
-        {
-            return array();
+        if ($depth === 0) {
+            return [];
         }
 
-        $qb = $config->getBaseQueryBuilder();
-        $alias = $config->getQueryBuilderAlias();
+        $lftField = $node->getField(NodeField::TYPE_LEFT);
+        $qb = $this->entityManager
+            ->createQueryBuilder()
+            ->from($class, 'ns');
 
-        $qb->andWhere("$alias.$lftField >= :lowerbound")
+        $qb->andWhere("ns.{$lftField->getColumnName()} >= :lowerbound")
             ->setParameter('lowerbound', 1)
-            ->orderBy("$alias.$lftField", "ASC");
+            ->orderBy("ns.{$lftField->getColumnName()}", "ASC");
 
-        if($hasManyRoots)
-        {
-            $qb->andWhere("$alias.$rootField = :rootid")
+        if($node->hasManyRoots()) {
+            $rootField = $node->getField(NodeField::TYPE_ROOT);
+            $qb->andWhere("ns.{$rootField->getColumnName()} = :rootid")
                 ->setParameter('rootid', $rootId);
         }
 		
 		$q = $qb->getQuery();
-		if ($this->config->isQueryHintSet()){
-			$q = $this->addHintToQuery($q);
-		}
         $nodes = $q->execute();
 		
-        if(empty($nodes))
-        {
-            return array();
+        if(empty($nodes)) {
+            return [];
         }
 
         // TODO: Filter depth using a cross join instead of this
-        if($depth !== null)
-        {
+        if ($depth !== null) {
             $nodes = $this->filterNodeDepth($nodes, $depth);
         }
 
         $wrappers = array();
-        foreach($nodes as $node)
-        {
+
+        foreach($nodes as $node) {
             $wrappers[] = $this->wrapNode($node);
         }
 
@@ -141,15 +137,16 @@ class Manager
      * Fetches a branch of a tree, returning the starting node of the branch.
      * All children and descendants are pre-populated.
      *
+     * @param string $class entity class name
      * @param mixed $pk the primary key used to locate the node to traverse
      *   the tree from
      * @param int $depth the depth to retrieve or null for unlimited
      *
      * @return NodeWrapper $branch
      */
-    public function fetchBranch($pk, $depth=null)
+    public function fetchBranch($class, $pk, $depth=null)
     {
-        $wrappers = $this->fetchBranchAsArray($pk, $depth);
+        $wrappers = $this->fetchBranchAsArray($class, $pk, $depth);
 
         return (!is_array($wrappers) || empty($wrappers)) ? null : $wrappers[0];
     }
@@ -159,71 +156,64 @@ class Manager
      * Fetches a branch of a tree, returning a flat array of node wrappers with
      * parent, children, ancestors and descendants pre-populated.
      *
+     * @param string $class entity class name
      * @param mixed $pk the primary key used to locate the node to traverse
      *   the tree from
      * @param int $depth the depth to retrieve or null for unlimited
      *
      * @return array
      */
-    public function fetchBranchAsArray($pk, $depth=null)
+    public function fetchBranchAsArray($class, $pk, $depth=null)
     {
-        $config = $this->getConfiguration();
-        $lftField = $config->getLeftFieldName();
-        $rgtField = $config->getRightFieldName();
-        $rootField = $config->getRootFieldName();
-        $hasManyRoots = $config->hasManyRoots();
-
-        if($depth === 0)
-        {
-            return array();
+        if($depth === 0) {
+            return [];
         }
 
-        $node = $this->getEntityManager()->find($this->getConfiguration()->getClassname(), $pk);
+        $entity = $this->getEntityManager()->find($class, $pk);
 
-        if(!$node)
-        {
-            return array();
+        if (!$entity) {
+            return [];
         }
 
-        $qb = $config->getBaseQueryBuilder();
-        $alias = $config->getQueryBuilderAlias();
+        $node = $this->nodeDefiner->getNode($class);
+        $lftField = $node->getField(NodeField::TYPE_LEFT);
+        $rgtField = $node->getField(NodeField::TYPE_RIGHT);
 
-        $qb->andWhere("$alias.$lftField >= :lowerbound")
-            ->setParameter('lowerbound', $node->getLeftValue())
-            ->andWhere("$alias.$rgtField <= :upperbound")
-            ->setParameter('upperbound', $node->getRightValue())
-            ->orderBy("$alias.$lftField", "ASC");
+        $qb = $this->entityManager
+            ->createQueryBuilder()
+            ->from($class, 'ns');
+
+        $qb->andWhere("ns.{$lftField->getColumnName()} >= :lowerbound")
+            ->setParameter('lowerbound', $lftField->getValue($entity))
+            ->andWhere("ns.{$rgtField->getColumnName()} <= :upperbound")
+            ->setParameter('upperbound', $rgtField->getValue($entity))
+            ->orderBy("ns.{$lftField->getColumnName()}", "ASC");
 
         // TODO: Add support for depth via a cross join
 
-        if($hasManyRoots)
-        {
-            $qb->andWhere("$alias.$rootField = :rootid")
-                ->setParameter('rootid', $node->getRootValue());
+        if($node->hasManyRoots()) {
+            $rootField = $node->getField(NodeField::TYPE_ROOT);
+
+            $qb->andWhere("ns.{$rootField->getColumnName()} = :rootid")
+                ->setParameter('rootid', $rootField->getValue($entity));
         }
-		
-		$q = $qb->getQuery();
-		if ($this->config->isQueryHintSet()){
-			$q = $this->addHintToQuery($q);
-		}
-        $nodes = $q->execute();
+
+        $nodes = $qb->getQuery()->execute();
 		
         // @codeCoverageIgnoreStart
-        if(empty($nodes))
-        {
+        if (empty($nodes)) {
             return null;
         }
         // @codeCoverageIgnoreEnd
 
         // TODO: Filter depth using a cross join instead of this
-        if($depth !== null)
-        {
+        if ($depth !== null) {
             $nodes = $this->filterNodeDepth($nodes, $depth);
         }
 
         $wrappers = array();
-        foreach($nodes as $node)
-        {
+
+        foreach($nodes as $node) {
             $wrappers[] = $this->wrapNode($node);
         }
 
@@ -240,36 +230,34 @@ class Manager
      *
      * @return NodeWrapper
      */
-    public function createRoot(NodeInterface $node)
+    public function createRoot($entity)
     {
-        if($node instanceof NodeWrapper)
-        {
-            throw new \InvalidArgumentException('Can\'t create a root node from a NodeWrapper node');
-        }
+        $node = $this->nodeDefiner->getNode($entity);
 
-        $node->setLeftValue(1);
-        $node->setRightValue(2);
+        $node->getField(NodeField::TYPE_LEFT)->setValue($entity, 1);
+        $node->getField(NodeField::TYPE_RIGHT)->setValue($entity, 2);
 
-        if($this->getConfiguration()->hasManyRoots())
+        if($node->hasManyRoots())
         {
-            $rootValue = $node->getId();
-            if($rootValue === null)
-            {
+            $idField = $node->getField(NodeField::TYPE_ID);
+            $rootValue = $idField->getValue($entity);
+
+            if($rootValue === null) {
                 // Set a temporary value in case wrapped node requires root value to be set
-                $node->setRootValue(0);
+                $node->getField(NodeField::TYPE_ROOT)->setValue($entity, 0);
                 $this->getEntityManager()->persist($node);
                 $this->getEntityManager()->flush();
-                $rootValue = $node->getId();
+
+                $rootValue = $idField->getValue($entity);
             }
 
-            if($rootValue === null)
-            {
+            if($rootValue === null) {
                 // @codeCoverageIgnoreStart
                 throw new \RuntimeException('Node must have an identifier available via getId()');
                 // @codeCoverageIgnoreEnd
             }
 
-            $node->setRootValue($rootValue);
+            $node->getField(NodeField::TYPE_ROOT)->setValue($entity, $rootValue);
         }
 
 
@@ -316,22 +304,22 @@ class Manager
     /**
      * Returns the Doctrine entity manager associated with this Manager
      *
-     * @return Doctrine\ORM\EntityManager
+     * @return EntityManager
      */
     public function getEntityManager()
     {
-        return $this->getConfiguration()->getEntityManager();
+        return $this->getEntityManager();
     }
 
 
     /**
      * gets configuration
      *
-     * @return Config
+     * @return NodeDefiner
      */
     public function getConfiguration()
     {
-        return $this->config;
+        return $this->nodeDefiner;
     }
 
 

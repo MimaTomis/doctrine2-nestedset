@@ -19,14 +19,14 @@
 namespace DoctrineExtensions\NestedSet\Tests\Mocks;
 
 use DoctrineExtensions\NestedSet\Manager;
-use DoctrineExtensions\NestedSet\Config;
+use DoctrineExtensions\NestedSet\NodeDefiner;
 use Doctrine\ORM\EntityManager;
 
 class ManagerMock extends Manager
 {
     public function __construct(EntityManager $em, $clazz=null)
     {
-        parent::__construct(new Config($em, $clazz));
+        parent::__construct(new NodeDefiner($em, $clazz));
     }
 
     public function wrapperExists($key)

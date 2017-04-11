@@ -18,7 +18,7 @@
 
 namespace DoctrineExtensions\NestedSet\Tests;
 
-use DoctrineExtensions\NestedSet\Config;
+use DoctrineExtensions\NestedSet\NodeDefiner;
 
 
 class ConfigTest extends DatabaseTest
@@ -29,7 +29,7 @@ class ConfigTest extends DatabaseTest
 
     public function setUp()
     {
-        $this->config = new Config($this->getEntityManager());
+        $this->config = new NodeDefiner($this->getEntityManager());
     }
 
     /**
@@ -37,13 +37,13 @@ class ConfigTest extends DatabaseTest
      */
     public function testConstructor()
     {
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Config', $this->config, '->__construct() works with default parameters');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeDefiner', $this->config, '->__construct() works with default parameters');
 
         $clazz = 'DoctrineExtensions\NestedSet\Tests\Mocks\NodeMock';
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Config', new Config($this->getEntityManager(), $clazz), '->construct() works with a classname');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeDefiner', new NodeDefiner($this->getEntityManager(), $clazz), '->construct() works with a classname');
 
         $metadata = $this->getEntityManager()->getClassMetadata($clazz);
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Config', new Config($this->getEntityManager(), $metadata), '->construct() works with metadata');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeDefiner', new NodeDefiner($this->getEntityManager(), $metadata), '->construct() works with metadata');
 
         $this->assertEquals('lft', $this->config->getLeftFieldName(), '->__construct() sets default left field name');
         $this->assertEquals('rgt', $this->config->getRightFieldName(), '->__construct() sets default right field name');

@@ -456,7 +456,7 @@ class ManagerTest extends DatabaseTest
      */
     public function testGetConfiguration()
     {
-        $this->assertInstanceOf('DoctrineExtensions\NestedSet\Config', $this->nsm->getConfiguration(), '->getConfiguration() works');
+        $this->assertInstanceOf('DoctrineExtensions\NestedSet\NodeDefiner', $this->nsm->getConfiguration(), '->getConfiguration() works');
     }
 
 
