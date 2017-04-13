@@ -20,9 +20,8 @@ namespace DoctrineExtensions\NestedSet;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Column;
-use DoctrineExtensions\NestedSet\Node\Node;
-use DoctrineExtensions\NestedSet\Node\NodeField;
+use DoctrineExtensions\NestedSet\Annotation\NestedSetNode;
+use DoctrineExtensions\NestedSet\Node\NodeInterface;
 
 /**
  * The Config class holds configuration for each NestedSet Manager instance.
@@ -42,7 +41,7 @@ class NodeDefiner
     private $annotationReader;
 
     /**
-     * @var Node[]
+     * @var NestedSetNode[]
      */
     private $nodes = [];
 
@@ -60,16 +59,17 @@ class NodeDefiner
      * Get node
      *
      * @param string $class
-     * @return Node
+     * @return NestedSetNode
      */
-    public function getNode($class)
+    public function getNodeAnnotation($class)
     {
         if (is_object($class)) {
             $class = get_class($class);
         }
 
         if (!isset($this->nodes[$class])) {
-            $this->nodes[$class] = $this->createNode($class);
+            $nodeAnnotation = $this->findNodeAnnotation($class);
+            $this->nodes[$class] = $nodeAnnotation ?: $this->getDefaultNodeAnnotation($class);
         }
 
         return $this->nodes[$class];
@@ -77,59 +77,27 @@ class NodeDefiner
 
     /**
      * @param string $class
-     * @return Node
+     * @return NestedSetNode
      */
-    protected function createNode($class)
+    protected function findNodeAnnotation($class)
     {
         if (!class_exists($class)) {
             throw new \InvalidArgumentException('Parameter "$class" must contain name of existent class');
         }
 
-        $class = new \ReflectionClass($class);
-        $node = $this->annotationReader->getClassAnnotation($class, Node::class);
-
-        if (!$node) {
-            throw new \InvalidArgumentException('Parameter "$class" must be nested set node');
+        if (!is_subclass_of($class, NodeInterface::class)) {
+            throw new \InvalidArgumentException(sprintf('Parameter "$class" must implement "%s" interface', NodeInterface::class));
         }
 
-        $node->setClass($class);
-        $this->setFields($node, $class);
-
-        return $node;
+        return $this->annotationReader->getClassAnnotation(new \ReflectionClass($class), NestedSetNode::class);
     }
 
     /**
-     * Find annotations of node fields. Apply node fields to node.
-     *
-     * @param Node $node
-     * @param \ReflectionClass $class
+     * @param string $class
+     * @return NestedSetNode
      */
-    protected function setFields(Node $node, \ReflectionClass $class)
+    protected function getDefaultNodeAnnotation($class)
     {
-        $properties = $class->getProperties();
-
-        foreach ($properties as $property) {
-            $annotations = $this->annotationReader->getPropertyAnnotations($property);
-            $nodeField = null;
-            $column = null;
-
-            foreach ($annotations as $annotation) {
-                if ($annotation instanceof NodeField) {
-                    $nodeField = $annotation;
-                } elseif ($annotation instanceof Column) {
-                    $column = $annotation;
-                }
-            }
-
-            if ($nodeField) {
-                $nodeField->setProperty($property);
-
-                if ($column && $column->name) {
-                    $nodeField->setColumnName($column->name);
-                }
-
-                $node->addField($nodeField);
-            }
-        }
+        return new NestedSetNode();
     }
 }

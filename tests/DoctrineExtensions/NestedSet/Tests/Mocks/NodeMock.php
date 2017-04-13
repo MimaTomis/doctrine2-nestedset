@@ -70,14 +70,14 @@ class NodeMock implements MultipleRootNodeInterface
 
     public function getId() { return $this->id; }
 
-    public function getLeftValue() { return $this->lft; }
-    public function setLeftValue($lft) { $this->lft = $lft; }
+    public function getNsLeft() { return $this->lft; }
+    public function setNsLeft($lft) { $this->lft = $lft; }
 
-    public function getRightValue() { return $this->rgt; }
-    public function setRightValue($rgt) { $this->rgt = $rgt; }
+    public function getNsRight() { return $this->rgt; }
+    public function setNsRight($rgt) { $this->rgt = $rgt; }
 
-    public function getRootValue() { return $this->root; }
-    public function setRootValue($root) { $this->root = $root; }
+    public function getNsRoot() { return $this->root; }
+    public function setNsRoot($root) { $this->root = $root; }
 
     public function getName() { return $this->name; }
     public function setName($name) { $this->name = $name; }

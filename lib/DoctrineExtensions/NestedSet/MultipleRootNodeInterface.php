@@ -38,12 +38,12 @@ interface MultipleRootNodeInterface extends NodeInterface
      *
      * @return mixed
      */
-    public function getRootValue();
+    public function getNsRoot();
 
     /**
      * sets Node's root value
      *
      * @param mixed $root
      */
-    public function setRootValue($root);
+    public function setNsRoot($root);
 }

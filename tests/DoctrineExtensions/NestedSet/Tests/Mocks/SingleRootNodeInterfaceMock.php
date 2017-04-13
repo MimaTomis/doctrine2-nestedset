@@ -56,14 +56,14 @@ class SingleRootNodeInterfaceMock implements NodeInterface
 
     public function getId() { return $this->id; }
 
-    public function getLeftValue() { return $this->lft; }
-    public function setLeftValue($lft) { $this->lft = $lft; }
+    public function getNsLeft() { return $this->lft; }
+    public function setNsLeft($lft) { $this->lft = $lft; }
 
-    public function getRightValue() { return $this->rgt; }
-    public function setRightValue($rgt) { $this->rgt = $rgt; }
+    public function getNsRight() { return $this->rgt; }
+    public function setNsRight($rgt) { $this->rgt = $rgt; }
 
-    public function getRootValue() { return null; }
-    public function setRootValue($root) { }
+    public function getNsRoot() { return null; }
+    public function setNsRoot($root) { }
 
     public function getName() { return $this->name; }
     public function setName($name) { $this->name = $name; }
