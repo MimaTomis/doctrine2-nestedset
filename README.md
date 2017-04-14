@@ -331,3 +331,31 @@ manager configuration:
 ## Conclusion
 
 NestedSet makes managing hierarchical data in Doctrine2 quick and easy.
+
+# New in version 1.1
+
+## Node annotation
+
+```php
+/**
+ * @NestedSetNode(leftField="ns_left", rightField="ns_right", rootField="ns_root")
+ */
+class Category 
+{
+
+}
+```
+
+## Factory
+
+```php
+/**
+ * @var Doctrine/ORM/EntityManager $entityManager
+ * @var DoctrineExtensions\NestedSet\Annotation\AnnotationDefiner $annotationDefiner
+ * @var DoctrineExtensions\NestedSet\Manager $manager
+ */
+$factory = new Factory($entityManager, $annotationDefiner);
+$manager = $factory->createManager(Category::class);
+```
+
+Now you may to register factory as service.
