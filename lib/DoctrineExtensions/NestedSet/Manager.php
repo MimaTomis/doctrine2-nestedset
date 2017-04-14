@@ -165,7 +165,7 @@ class Manager
         }
 
         /** @var NodeInterface $entity */
-        $entity = $this->getEntityManager()->find($class, $pk);
+        $entity = $this->entityManager->find($class, $pk);
 
         if (!$entity) {
             return [];
@@ -217,29 +217,28 @@ class Manager
     /**
      * Creates a new root node
      *
-     * @param Node
+     * @param NodeInterface $entity
      *
-     * @return NodeWrapper
+     * @return NodeInterface
      */
-    public function createRoot($entity)
+    public function createRoot(NodeInterface $entity)
     {
         $node = $this->nodeDefiner->getNodeAnnotation($entity);
 
-        $node->getField(NodeField::TYPE_LEFT)->setValue($entity, 1);
-        $node->getField(NodeField::TYPE_RIGHT)->setValue($entity, 2);
+        $entity->setNsLeft(1);
+        $entity->setNsRight(2);
 
         if($node->hasManyRoots())
         {
-            $idField = $node->getField(NodeField::TYPE_ID);
-            $rootValue = $idField->getValue($entity);
+            $rootValue = $entity->getId();
 
             if($rootValue === null) {
                 // Set a temporary value in case wrapped node requires root value to be set
-                $node->getField(NodeField::TYPE_ROOT)->setValue($entity, 0);
-                $this->getEntityManager()->persist($node);
-                $this->getEntityManager()->flush();
+                $entity->setNsRoot(0);
+                $this->entityManager->persist($node);
+                $this->entityManager->flush();
 
-                $rootValue = $idField->getValue($entity);
+                $rootValue = $entity->getId();
             }
 
             if($rootValue === null) {
@@ -248,78 +247,15 @@ class Manager
                 // @codeCoverageIgnoreEnd
             }
 
-            $node->getField(NodeField::TYPE_ROOT)->setValue($entity, $rootValue);
+            $entity->setNsRoot($rootValue);
         }
 
 
-        $this->getEntityManager()->persist($node);
-        $this->getEntityManager()->flush();
+        $this->entityManager->persist($node);
+        $this->entityManager->flush();
 
         return $this->wrapNode($node);
     }
-
-
-    /**
-     * wraps the node using the NodeWrapper class
-     *
-     * @param NodeInterface $node
-     *
-     * @return NodeWrapper
-     */
-    public function wrapNode(NodeInterface $node)
-    {
-        if($node instanceof NodeWrapper)
-        {
-            throw new \InvalidArgumentException('Can\'t wrap a NodeWrapper node');
-        }
-
-        $oid = spl_object_hash($node);
-        if(!isset($this->wrappers[$oid]) || $this->wrappers[$oid]->getNode() !== $node)
-        {
-            $this->wrappers[$oid] = new NodeWrapper($node, $this);
-        }
-
-        return $this->wrappers[$oid];
-    }
-
-
-    /**
-     * Resets the manager.  Clears NodeWrapper caches.
-     */
-    public function reset()
-    {
-        $this->wrappers = array();
-    }
-
-
-    /**
-     * Returns the Doctrine entity manager associated with this Manager
-     *
-     * @return EntityManager
-     */
-    public function getEntityManager()
-    {
-        return $this->getEntityManager();
-    }
-
-
-    /**
-     * gets configuration
-     *
-     * @return NodeDefiner
-     */
-    public function getConfiguration()
-    {
-        return $this->nodeDefiner;
-    }
-
-
-
-    //
-    // Methods marked internal should not be used outside of the
-    // NestedSet namespace
-    //
-
 
     /**
      * Internal
@@ -389,8 +325,7 @@ class Manager
      */
     public function updateValues($first, $last, $delta, $oldRoot=null, $newRoot=null)
     {
-        if(!$this->wrappers)
-        {
+        if (!$this->wrappers) {
             return;
         }
 
@@ -450,7 +385,7 @@ class Manager
             {
                 $wrapper->setRootValue(0);
             }
-            $this->getEntityManager()->detach($wrapper->getNode());
+            $this->entityManager->detach($wrapper->getNode());
         }
     }
 
@@ -1164,7 +1099,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot insert as parent of root');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $lftField = $this->getLeftFieldName();
         $rgtField = $this->getRightFieldName();
 
@@ -1225,7 +1160,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot insert node as a sibling of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $newLeft = $node->getLeftValue();
         $newRight = $node->getLeftValue() + 1;
         $newRoot = $this->hasManyRoots() ? $node->getRootValue() : null;
@@ -1264,7 +1199,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot insert node as a sibling of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $newLeft = $node->getRightValue() + 1;
         $newRight = $node->getRightValue() + 2;
         $newRoot = $this->hasManyRoots() ? $node->getRootValue() : null;
@@ -1303,7 +1238,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot insert node as a child of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $newLeft = $node->getLeftValue() + 1;
         $newRight = $node->getLeftValue() + 2;
         $newRoot = $this->hasManyRoots() ? $node->getRootValue() : null;
@@ -1342,7 +1277,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot insert node as a child of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $newLeft = $node->getRightValue();
         $newRight = $node->getRightValue() + 1;
         $newRoot = $this->hasManyRoots() ? $node->getRootValue() : null;
@@ -1381,7 +1316,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot move node as a sibling of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
 
         // beginTransaction
         $em->getConnection()->beginTransaction();
@@ -1423,7 +1358,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot move node as a sibling of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
 
         // beginTransaction
         $em->getConnection()->beginTransaction();
@@ -1465,7 +1400,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot move node as a child of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
 
         // beginTransaction
         $em->getConnection()->beginTransaction();
@@ -1507,7 +1442,7 @@ class Manager
             throw new \InvalidArgumentException('Cannot move node as a child of itself');
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
 
         // beginTransaction
         $em->getConnection()->beginTransaction();
@@ -1554,7 +1489,7 @@ class Manager
             throw new \BadMethodCallException(sprintf('%s::%s is only supported on multiple root trees', __CLASS__, __METHOD__));
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $lftField = $this->getLeftFieldName();
         $rgtField = $this->getRightFieldName();
         $rootField = $this->getRootFieldName();
@@ -1639,7 +1574,7 @@ class Manager
             $node->setRootValue($this->getRootValue());
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
 
         // beginTransaction
         $em->getConnection()->beginTransaction();
@@ -1672,7 +1607,7 @@ class Manager
      */
     public function delete()
     {
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $lftField = $this->getLeftFieldName();
         $rgtField = $this->getRightFieldName();
 
@@ -1737,7 +1672,7 @@ class Manager
         {
             $this->setRootValue($destRoot);
         }
-        $this->getManager()->getEntityManager()->persist($this->getNode());
+        $this->entityManager->persist($this->getNode());
     }
 
 
@@ -1791,7 +1726,7 @@ class Manager
      */
     protected function shiftRLRange($first, $last, $delta, $rootVal)
     {
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
 
         foreach(array($this->getLeftFieldName(), $this->getRightFieldName()) as $field)
         {
@@ -1845,7 +1780,7 @@ class Manager
             // @codeCoverageIgnoreEnd
         }
 
-        $em = $this->getManager()->getEntityManager();
+        $em = $this->entityManager;
         $lftField = $this->getLeftFieldName();
         $rgtField = $this->getRightFieldName();
         $rootField = $this->getRootFieldName();
@@ -2002,195 +1937,33 @@ class Manager
     /**
      * determines if this node is an ancestor of the given node
      *
-     * @param Node
-     *
+     * @param NodeInterface $node1
+     * @param NodeInterface $node2
      * @return bool
      */
-    public function isAncestorOf(NodeInterface $node)
+    public function isAncestorOf(NodeInterface $node1, NodeInterface $node2)
     {
-        return (($this->getLeftValue() < $node->getLeftValue()) &&
-            ($this->getRightValue() > $node->getRightValue()) &&
-            (!$this->hasManyRoots() || ($this->getRootValue() == $node->getRootValue())));
+        return (
+            ($node1->getNsLeft() < $node2->getNsLeft()) &&
+            ($node1->getNsRight() > $node2->getNsRight()) &&
+            ($node1->getNsRoot() == $node2->getNsRoot())
+        );
     }
 
 
     /**
      * determines if this node is equal to the given node
      *
-     * @param Node
-     *
+     * @param NodeInterface $node1
+     * @param NodeInterface $node2
      * @return bool
      */
-    public function isEqualTo(NodeInterface $node)
+    public function isEqualTo(NodeInterface $node1, NodeInterface $node2)
     {
-        return (($this->getLeftValue() == $node->getLeftValue()) &&
-            ($this->getRightValue() == $node->getRightValue()) &&
-            (!$this->hasManyRoots() || ($this->getRootValue() == $node->getRootValue())));
-    }
-
-
-
-
-
-
-
-
-    /**
-     * Returns the NestedSet Manager
-     *
-     * @return Manager
-     */
-    public function getManager()
-    {
-        return $this->manager;
-    }
-
-
-    protected function getLeftFieldName()
-    {
-        return $this->getManager()->getConfiguration()->getLeftFieldName();
-    }
-
-
-    protected function getRightFieldName()
-    {
-        return $this->getManager()->getConfiguration()->getRightFieldName();
-    }
-
-
-    protected function getRootFieldName()
-    {
-        return $this->getManager()->getConfiguration()->getRootFieldName();
-    }
-
-
-    protected function hasManyRoots()
-    {
-        return $this->getManager()->getConfiguration()->hasManyRoots();
-    }
-
-
-
-
-
-
-
-
-    //
-    // Internal methods
-    // Use of these methods outside the NestedSet package is not recommended
-    //
-
-    /**
-     * INTERNAL
-     */
-    public function internalSetParent(NodeWrapper $parent)
-    {
-        $this->parent = $parent;
-    }
-
-
-    /**
-     * INTERNAL
-     */
-    public function internalAddChild(NodeWrapper $child)
-    {
-        if($this->children === null)
-        {
-            $this->children = array();
-        }
-
-        $this->children[] = $child;
-    }
-
-
-    /**
-     * INTERNAL
-     */
-    public function internalAddDescendant(NodeWrapper $descendant)
-    {
-        if($this->descendants === null)
-        {
-            $this->descendants = array();
-        }
-
-        $this->descendants[] = $descendant;
-    }
-
-
-    /**
-     * INTERNAL
-     */
-    public function internalSetAncestors(array $ancestors)
-    {
-        $this->ancestors = $ancestors;
-    }
-
-
-    /**
-     * INTERNAL
-     */
-    public function internalGetChildren()
-    {
-        return $this->children;
-    }
-
-
-    /**
-     * INTERNAL
-     */
-    public function internalSetLevel($level)
-    {
-        $this->level = $level;
-    }
-
-
-    /**
-     * INTERNAL
-     */
-    public function internalSetOutlineNumbers($numbers)
-    {
-        $this->outlineNumbers = $numbers;
-    }
-
-
-
-    //
-    // Node Interface Methods
-    //
-
-    public function getId()
-    {
-        return $this->getNode()->getId();
-    }
-
-    public function getLeftValue()
-    {
-        return $this->getNode()->getLeftValue();
-    }
-
-    public function setLeftValue($lft)
-    {
-        return $this->getNode()->setLeftValue($lft);
-    }
-
-    public function getRightValue()
-    {
-        return $this->getNode()->getRightValue();
-    }
-
-    public function setRightValue($rgt)
-    {
-        return $this->getNode()->setRightValue($rgt);
-    }
-
-    public function getRootValue()
-    {
-        return $this->getNode()->getRootValue();
-    }
-
-    public function setRootValue($root)
-    {
-        return $this->getNode()->setRootValue($root);
+        return (
+            ($node1->getNsLeft() == $node2->getNsLeft()) &&
+            ($node1->getNsRight() == $node2->getNsRight()) &&
+            ($node1->getNsRoot() == $node2->getNsRoot())
+        );
     }
 }
