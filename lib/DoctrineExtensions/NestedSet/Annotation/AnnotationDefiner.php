@@ -18,8 +18,7 @@
 
 namespace DoctrineExtensions\NestedSet\Annotation;
 
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Annotations\Reader;
 
 /**
  * Class AnnotationDefiner
@@ -31,12 +30,7 @@ use Doctrine\ORM\EntityManager;
 class AnnotationDefiner implements AnnotationDefinerInterface
 {
     /**
-     * @var EntityManager
-     */
-    private $entityManager;
-
-    /**
-     * @var AnnotationReader
+     * @var Reader
      */
     private $annotationReader;
 
@@ -46,12 +40,10 @@ class AnnotationDefiner implements AnnotationDefinerInterface
     private $nodes = [];
 
     /**
-     * @param EntityManager $entityManager
-     * @param AnnotationReader $annotationReader
+     * @param Reader $annotationReader
      */
-    public function __construct(EntityManager $entityManager, AnnotationReader $annotationReader)
+    public function __construct(Reader $annotationReader)
     {
-        $this->entityManager = $entityManager;
         $this->annotationReader = $annotationReader;
     }
 
