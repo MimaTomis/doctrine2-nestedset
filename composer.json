@@ -9,6 +9,9 @@
         }
     ],
     "require": {},
+    "autoload": {
+        "psr-0": { "": "lib/" }
+    },
     "require-dev": {
         "doctrine/orm": "v2.5.6"
     }
