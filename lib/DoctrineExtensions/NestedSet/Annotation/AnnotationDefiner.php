@@ -18,6 +18,7 @@
 
 namespace DoctrineExtensions\NestedSet\Annotation;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\Reader;
 
 /**
@@ -44,6 +45,7 @@ class AnnotationDefiner implements AnnotationDefinerInterface
      */
     public function __construct(Reader $annotationReader)
     {
+        AnnotationRegistry::registerFile(__DIR__.'/NestedSetNode.php');
         $this->annotationReader = $annotationReader;
     }
 
