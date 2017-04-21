@@ -46,7 +46,6 @@ class NestedSetNode
     /**
      * Sets the root field name
      *
-     * @Required
      * @var string
      */
     public $rootField;
