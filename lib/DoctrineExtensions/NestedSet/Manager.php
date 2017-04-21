@@ -35,10 +35,10 @@ class Manager
     /**
      * Initializes a new NestedSet Manager.
      *
-     * @param string|Doctrine\ORM\Mapping\ClassMetadata $clazz the fully qualified entity class name
+     * @param string|\Doctrine\ORM\Mapping\ClassMetadata $clazz the fully qualified entity class name
      *   or a ClassMetadata object representing the class of nodes to be managed
      *   by this manager
-     * @param Doctrine\ORM\EntityManager $em The EntityManager to use.
+     * @param \Doctrine\ORM\EntityManager $em The EntityManager to use.
      */
     public function __construct(Config $config)
     {
@@ -313,7 +313,7 @@ class Manager
     /**
      * Returns the Doctrine entity manager associated with this Manager
      *
-     * @return Doctrine\ORM\EntityManager
+     * @return \Doctrine\ORM\EntityManager
      */
     public function getEntityManager()
     {
